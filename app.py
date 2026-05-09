@@ -8,6 +8,12 @@ from chat import FREE_CONFIG, PROVIDERS, prepare_rag_messages, stream_response
 
 load_dotenv()
 
+# Read API key: .env (local) > st.secrets (cloud) > env var
+if not os.getenv("OPENROUTER_API_KEY"):
+    _cloud_key = st.secrets.get("OPENROUTER_API_KEY", "")
+    if _cloud_key and _cloud_key != "your-openrouter-api-key-here":
+        os.environ["OPENROUTER_API_KEY"] = _cloud_key
+
 FREE_MAX_FILES = 10
 FREE_MAX_FILE_MB = 15
 BYOK_MAX_FILE_MB = 200

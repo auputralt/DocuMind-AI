@@ -1,7 +1,8 @@
 import chromadb
+import os
 from typing import List, Dict
 
-CHROMA_DATA_PATH = ".chroma_db"
+CHROMA_DATA_PATH = os.environ.get("CHROMA_PATH", ".chroma_db")
 COLLECTION_NAME = "documind_documents"
 
 def get_chroma_client():
