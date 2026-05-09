@@ -1,15 +1,15 @@
 # DocuMind AI
 
-AI-powered document analysis chatbot with RAG (Retrieval-Augmented Generation). Upload documents, ask questions, get answers with source citations.
+AI-powered document analysis chatbot. Upload documents, ask questions, get answers with source citations.
 
 ## Features
 
-- **Free Mode** — Uses `openrouter/free`, no API key required
-- **Bring Your Own Key** — Connect your own API key from OpenRouter, OpenAI, Anthropic, DeepSeek, or Google
-- **Document Upload** — PDF, DOCX, DOC, TXT, CSV support
-- **RAG Pipeline** — Documents are chunked, embedded locally (ChromaDB), and retrieved for context-aware answers
-- **Chat Interface** — ChatGPT-style conversation with streaming responses
-- **Source Citations** — AI cites which document and chunk the answer comes from
+- **Free Mode** — No API key needed. Uses openrouter/free.
+- **Bring Your Own Key** — Use your own API key from OpenRouter, OpenAI, Anthropic, DeepSeek, or Google.
+- **Document Upload** — Supports PDF, DOCX, DOC, TXT, CSV.
+- **Smart Retrieval** — Documents are chunked and indexed for context-aware answers.
+- **Streaming Chat** — ChatGPT-style conversation with real-time responses.
+- **Source Citations** — AI cites which document and chunk the answer comes from.
 
 ## Modes
 
@@ -36,7 +36,7 @@ Create a `.env` file:
 ```
 OPENROUTER_API_KEY=your-key-here
 ```
-Get your key at [openrouter.ai/keys](https://openrouter.ai/keys). Required for free mode. For BYOK, enter your key directly in the app.
+Get your key at [openrouter.ai/keys](https://openrouter.ai/keys). Required for free mode. For BYOK, enter your key directly in the app sidebar.
 
 ### 3. Run
 ```bash
@@ -46,18 +46,19 @@ streamlit run app.py
 ## Tech Stack
 
 - **UI:** Streamlit
-- **RAG:** ChromaDB (local embeddings, no external embedding API needed)
-- **LLM:** OpenRouter (free tier) or BYOK (OpenAI, Anthropic, DeepSeek, Google)
+- **LLM Gateway:** OpenRouter (free tier) or BYOK (OpenAI, Anthropic, DeepSeek, Google)
 - **Parsing:** PyMuPDF, python-docx
+- **Storage:** Local JSON file-based chunk storage
+- **Retrieval:** Keyword-overlap scoring
 
 ## Project Structure
 
 ```
 app.py          # Main Streamlit app
 chat.py         # LLM client, model configs, streaming
-embedder.py     # ChromaDB storage with local embeddings
+embedder.py     # Chunk storage (JSON file)
 parser.py       # Document parsing (PDF, DOCX, TXT, CSV)
-retriever.py    # Context retrieval from ChromaDB
+retriever.py    # Context retrieval (keyword scoring)
 requirements.txt
 .env            # API keys (not committed)
 ```
