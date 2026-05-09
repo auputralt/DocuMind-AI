@@ -1,26 +1,30 @@
-from embedder import get_chroma_client, COLLECTION_NAME
+import re
 from typing import List, Dict
+from embedder import load_all_chunks
+
+
+def _tokenize(text: str) -> List[str]:
+    return re.findall(r"\w+", text.lower())
+
 
 def retrieve_context(query: str, top_k: int = 5, **kwargs) -> List[Dict]:
-    client = get_chroma_client()
-
-    try:
-        collection = client.get_collection(name=COLLECTION_NAME)
-    except Exception:
+    all_chunks = load_all_chunks()
+    if not all_chunks:
         return []
 
-    results = collection.query(
-        query_texts=[query],
-        n_results=top_k
-    )
-
-    if not results or not results['documents'] or not results['documents'][0]:
+    query_tokens = set(_tokenize(query))
+    if not query_tokens:
         return []
 
-    documents = results['documents'][0]
-    metadatas = results['metadatas'][0]
+    scored = []
+    for chunk in all_chunks:
+        chunk_tokens = set(_tokenize(chunk["text"]))
+        overlap = len(query_tokens & chunk_tokens)
+        if overlap > 0:
+            scored.append((overlap, chunk))
 
-    return [
-        {"text": doc, "metadata": meta}
-        for doc, meta in zip(documents, metadatas)
-    ]
+    if not scored:
+        return []
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+    return [chunk for _, chunk in scored[:top_k]]

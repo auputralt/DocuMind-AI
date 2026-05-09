@@ -1,39 +1,38 @@
-import chromadb
+import json
 import os
 from typing import List, Dict
 
-CHROMA_DATA_PATH = os.environ.get("CHROMA_PATH", ".chroma_db")
-COLLECTION_NAME = "documind_documents"
+CHUNKS_PATH = os.environ.get("CHUNKS_PATH", ".doc_chunks.json")
 
-def get_chroma_client():
-    return chromadb.PersistentClient(path=CHROMA_DATA_PATH)
 
 def store_chunks(chunks: List[Dict]):
     if not chunks:
         return
 
-    client = get_chroma_client()
-    collection = client.get_or_create_collection(name=COLLECTION_NAME)
+    all_chunks = _load_all()
 
-    source_name = chunks[0]["metadata"]["source"]
-    try:
-        collection.delete(where={"source": source_name})
-    except Exception:
-        pass
+    source = chunks[0]["metadata"]["source"]
+    all_chunks = [c for c in all_chunks if c["metadata"]["source"] != source]
+    all_chunks.extend(chunks)
 
-    documents = [c["text"] for c in chunks]
-    metadatas = [c["metadata"] for c in chunks]
-    ids = [f"{source_name}_chunk_{c['metadata']['chunk_index']}" for c in chunks]
+    with open(CHUNKS_PATH, "w", encoding="utf-8") as f:
+        json.dump(all_chunks, f, ensure_ascii=False)
 
-    collection.add(
-        documents=documents,
-        metadatas=metadatas,
-        ids=ids
-    )
+
+def load_all_chunks() -> List[Dict]:
+    return _load_all()
+
 
 def clear_database():
-    client = get_chroma_client()
+    if os.path.exists(CHUNKS_PATH):
+        os.remove(CHUNKS_PATH)
+
+
+def _load_all() -> List[Dict]:
+    if not os.path.exists(CHUNKS_PATH):
+        return []
     try:
-        client.delete_collection(name=COLLECTION_NAME)
-    except Exception:
-        pass
+        with open(CHUNKS_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return []
